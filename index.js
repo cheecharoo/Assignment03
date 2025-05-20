@@ -1,4 +1,4 @@
-// --- DOM REFS ---
+// Element references
 const board       = document.querySelector('.game-board');
 const startBtn    = document.getElementById('start-btn');
 const resetBtn    = document.getElementById('reset-btn');
@@ -12,7 +12,7 @@ const totalEl     = document.getElementById('total');
 const timerEl     = document.getElementById('timer');
 const messageEl   = document.getElementById('message');
 
-// --- STATE ---
+// Game state variables
 let firstCard, secondCard;
 let hasFlipped = false, lockBoard = false;
 let clickCount = 0, pairsMatched = 0, pairsLeft = 0, totalPairs = 0;
@@ -20,22 +20,23 @@ let timer, timeLeft = 0;
 const REVEAL_TIME = 2000;
 const COOLDOWN    = 30; // seconds
 
-// will hold the back-of-card sprite URL
+// Card back image
 let backSprite = './back.webp';
 
-// --- THEME ---
+// Apply a selected theme
 function applyTheme(theme) {
   document.documentElement.setAttribute('data-theme', theme);
   localStorage.setItem('theme', theme);
 }
 
-// --- POKÉAPI + DECK ---
+// Generate unique random Pokémon IDs
 function getRandomIds(n, max = 898) {
   const set = new Set();
   while (set.size < n) set.add(Math.floor(Math.random() * max) + 1);
   return [...set];
 }
 
+// Fetch Pokémon data by ID
 async function fetchPokemon(id) {
   const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`);
   const js  = await res.json();
@@ -46,12 +47,14 @@ async function fetchPokemon(id) {
   };
 }
 
+// Generate a shuffled deck of Pokémon card pairs
 async function generateDeck(pairCount) {
   const ids   = getRandomIds(pairCount);
   const pokes = await Promise.all(ids.map(fetchPokemon));
-  return pokes.flatMap(p => ([{...p},{...p}]));
+  return pokes.flatMap(p => ([{...p},{...p}])); // Each pair has identical data
 }
 
+// Shuffle the array in-place using Fisher-Yates algorithm
 function shuffle(arr) {
   for (let i = arr.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -59,7 +62,7 @@ function shuffle(arr) {
   }
 }
 
-// --- STATS & TIMER ---
+// Update click, match, and remaining statistics on UI
 function updateStats() {
   clicksEl.textContent  = clickCount;
   matchedEl.textContent = pairsMatched;
@@ -67,6 +70,7 @@ function updateStats() {
   totalEl.textContent   = totalPairs;
 }
 
+// Start countdown timer for the game
 function startTimer() {
   timerEl.textContent = timeLeft;
   timer = setInterval(() => {
@@ -76,7 +80,7 @@ function startTimer() {
   }, 1000);
 }
 
-// --- GAME LOGIC ---
+// End game and show result message
 function endGame(won) {
   clearInterval(timer);
   lockBoard = true;
@@ -91,7 +95,7 @@ function endGame(won) {
   }
 }
 
-
+// Reset the flipped card tracking
 function resetFlip() {
   hasFlipped = false;
   lockBoard = false;
@@ -99,7 +103,7 @@ function resetFlip() {
   secondCard = null;
 }
 
-
+// Check if the selected pair is a match
 function checkMatch() {
   const isMatch = firstCard.dataset.name === secondCard.dataset.name;
   if (isMatch) {
@@ -121,6 +125,7 @@ function checkMatch() {
   }
 }
 
+// Handle card click events
 function onCardClick(e) {
   if (lockBoard) return;
   const card = e.currentTarget;
@@ -129,18 +134,18 @@ function onCardClick(e) {
 
   if (!hasFlipped) {
     hasFlipped = true;
-    firstCard = this
+    firstCard = this;
     return;
   } 
-    secondCard = card;
-    lockBoard = true;
-    clickCount++;
-    updateStats();
-    checkMatch();
   
+  secondCard = card;
+  lockBoard = true;
+  clickCount++;
+  updateStats();
+  checkMatch();
 }
 
-// --- RENDER BOARD ---
+// Build and display the game board with cards
 function renderBoard(deck) {
   board.innerHTML = '';
   deck.forEach(data => {
@@ -161,7 +166,7 @@ function renderBoard(deck) {
   });
 }
 
-// --- POWER-UP ---
+// Reveal all unmatched cards briefly as a power-up
 function handlePowerUp() {
   powerBtn.disabled = true;
   const all = board.querySelectorAll('.card');
@@ -183,15 +188,15 @@ function handlePowerUp() {
   }, REVEAL_TIME);
 }
 
-// --- START & RESET ---
+// Initialize and start a new game
 async function startGame() {
-
   clickCount = pairsMatched = 0;
 
   const diff = diffSelect.value;
-  if (diff === 'easy')      { totalPairs = 4;  timeLeft = 60;  }
+  if (diff === 'easy')       { totalPairs = 4;  timeLeft = 60;  }
   else if (diff === 'medium'){ totalPairs = 8;  timeLeft = 120; }
   else                       { totalPairs = 12; timeLeft = 180; }
+  
   pairsLeft = totalPairs;
   updateStats();
 
@@ -205,6 +210,7 @@ async function startGame() {
   startTimer();
 }
 
+// Reset game state and UI
 function resetGame() {
   clearInterval(timer);
   board.innerHTML = '';
@@ -222,11 +228,9 @@ function resetGame() {
     messageEl.classList.add('hidden');
     messageEl.classList.remove('show');
   }
-
-
 }
 
-// --- INIT ---
+// Set up initial UI and event listeners
 function init() {
   const saved = localStorage.getItem('theme') || 'light';
   themeSelect.value = saved;
@@ -238,9 +242,11 @@ function init() {
   powerBtn.addEventListener('click', handlePowerUp);
 }
 
+// Initialize when DOM is ready
 if (document.readyState !== 'loading') init();
 else document.addEventListener('DOMContentLoaded', init);
 
+// Dismiss message popup when clicked
 document.addEventListener('DOMContentLoaded', () => {
   const messageEl = document.getElementById('message');
   if (messageEl) {
