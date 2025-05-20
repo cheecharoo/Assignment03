@@ -17,7 +17,7 @@ let firstCard, secondCard;
 let hasFlipped = false, lockBoard = false;
 let clickCount = 0, pairsMatched = 0, pairsLeft = 0, totalPairs = 0;
 let timer, timeLeft = 0;
-const REVEAL_TIME = 5000;
+const REVEAL_TIME = 2000;
 const COOLDOWN    = 30; // seconds
 
 // will hold the back-of-card sprite URL
